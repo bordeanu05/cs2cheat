@@ -2,91 +2,80 @@
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <map>
+
+#include <SFML/Graphics.hpp>
+
+#include "../inc/common.hpp"
 
 #include "../inc/memory.hpp"
-#include "../inc/offsets.hpp"
+#include "../inc/game_map.hpp"
+#include "../inc/cheat.hpp"
 
-struct CSEntity {
-    char name[128];
-};
-
-struct Player {
-    int health;
-    int team;
-
-    float xPos, yPos, zPos;
-};
-
-std::vector<Player> getPlayers(Memory& mem) {
-    uintptr_t client = mem.getModuleAddress(L"client.dll");
-
-    const auto localPlayerAddr = mem.memRead<uintptr_t>(client + offsets::localPlayerOffset);
-
-    int localTeam = mem.memRead<int>(localPlayerAddr + offsets::m_iTeamNum);
-
-    uintptr_t entityList = mem.memRead<uintptr_t>(client + offsets::dwEntityList);
-
-    uintptr_t listEntry = mem.memRead<uintptr_t>(entityList + 0x10);
-
-    std::vector<Player> playerVec;
-
+void resetPlayerCircles(std::vector<sf::CircleShape>& playerCircles) {
     for (int i = 0; i < 64; ++i) {
-        if (!listEntry) {
-            continue;
-        }
-
-        uintptr_t currentController = mem.memRead<uintptr_t>(listEntry + i * 0x78);
-
-        if (!currentController) {
-            continue;
-        }
-
-        int pawnHandle = mem.memRead<int>(currentController + offsets::m_hPlayerPawn);
-        if (!pawnHandle) {
-            continue;
-        }
-
-        uintptr_t listEntry2 = mem.memRead<uintptr_t>(entityList + 0x8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
-
-        uintptr_t currentPawn = mem.memRead<uintptr_t>(listEntry2 + 0x78 * (pawnHandle & 0x1FF));
-
-        int entHealth = mem.memRead<int>(currentPawn + offsets::m_iHealth);
-        int entTeam = mem.memRead<int>(currentPawn + offsets::m_iTeamNum);
-
-        if (entTeam == localTeam) {
-            continue;
-        }
-
-        if (entHealth <= 0 || entHealth > 100) {
-            continue;
-        }
-
-        float xPos = mem.memRead<float>(currentPawn + offsets::x_offset);
-        float yPos = mem.memRead<float>(currentPawn + offsets::y_offset);
-        float zPos = mem.memRead<float>(currentPawn + offsets::z_offset);
-
-        playerVec.push_back({ entHealth, entTeam, xPos, yPos, zPos });
+        playerCircles[i].setPosition(0, 0);
     }
-
-    return playerVec;
 }
 
 int main() {
-    Memory mem = Memory(L"cs2.exe");
+    std::string mapName; std::cin >> mapName;
 
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    Cheat cheat(L"cs2.exe");
+    GameMap gameMap(mapName);
 
-        system("cls");
+    sf::RenderWindow window(sf::VideoMode(512, 512), "CS2 Radar Hack");
 
-        std::vector<Player> playerVec = getPlayers(mem);
+    std::vector<sf::CircleShape> playerCircles(64);
+    for (int i = 0; i < 64; ++i) {
+        playerCircles[i].setRadius(5);
+        playerCircles[i].setFillColor(sf::Color::Red);
+        playerCircles[i].setPosition(0, 0);
+    }
 
-        int playerCount = 0;
-        for (auto player : playerVec) {
-            std::cout << "Player " << playerCount++ << ": Health: " << player.health << " --- Team: " << (player.team == 2 ? "T" : "CT") << " --- Position: (" <<
-                player.xPos << ", " << player.yPos << ", " << player.zPos << ")" << std::endl;
+    int32_t initialPlayerCount = 0;
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
         }
 
-        // TODO: infrumusetat cod, adaugat interfata cu harti
+        std::vector<common::Player> playerVec = cheat.getPlayers();
+
+        window.clear();
+
+        window.draw(gameMap);
+
+        int32_t playerCount = playerVec.size();
+        if (playerCount != initialPlayerCount) {
+            resetPlayerCircles(playerCircles);
+            initialPlayerCount = playerCount;
+        }
+
+        for (size_t playerIdx = 0; playerIdx < playerVec.size(); ++playerIdx) {
+            common::Vec2 radarPos = gameMap.getWorldPosToRadarPos(playerVec[playerIdx].pos);
+
+            playerCircles[playerIdx].setPosition(radarPos.x / 2, radarPos.y / 2);
+
+            if (playerVec[playerIdx].self) {
+                playerCircles[playerIdx].setFillColor(sf::Color::Green);
+            }
+            else {
+                if (playerVec[playerIdx].team == 2) {
+                    playerCircles[playerIdx].setFillColor(sf::Color::Red);
+                }
+                else {
+                    playerCircles[playerIdx].setFillColor(sf::Color::Cyan);
+                }
+            }
+        }
+
+        for (size_t i = 0; i < playerVec.size(); ++i) {
+            window.draw(playerCircles[i]);
+        }
+
+        window.display();
     }
 }

@@ -18,6 +18,11 @@ Memory::Memory(const wchar_t* processName) {
     }
 
     CloseHandle(snapshotHandle);
+
+    if (mProcessHandle == NULL) {
+        std::cerr << "Open CS2 first!";
+        exit(EXIT_FAILURE);
+    }
 }
 
 Memory::~Memory() {

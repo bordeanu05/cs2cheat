@@ -1,6 +1,8 @@
+#pragma once
+
 namespace offsets {
 
-constexpr auto localPlayerOffset = 0x0181A998;
+constexpr auto localPlayerPawnOffset = 0x181A9C8;
 
 constexpr auto healthOffset = 0x324;
 constexpr auto dwEntityList = 0x19B49B8;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(cs2cheat LANGUAGES CXX) 
+project(obs LANGUAGES CXX) 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
@@ -15,5 +15,11 @@ if (MSVC)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif()
+
+set(SFML_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/sfml/lib/cmake/SFML")
+
+find_package(SFML 2.6.1 COMPONENTS graphics window system REQUIRED)
+
+target_link_libraries(${PROJECT_NAME} sfml-graphics sfml-window sfml-system)
 
 target_link_libraries(${PROJECT_NAME})
