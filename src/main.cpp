@@ -12,19 +12,31 @@
 #include "../inc/game_map.hpp"
 #include "../inc/cheat.hpp"
 
-void resetPlayerCircles(std::vector<sf::CircleShape>& playerCircles) {
+inline void resetPlayerCircles(std::vector<sf::CircleShape>& playerCircles) {
     for (int i = 0; i < 64; ++i) {
         playerCircles[i].setPosition(0, 0);
     }
 }
 
+inline void setPlayerCircleColor(sf::CircleShape& playerCircle, int team, bool self) {
+    if (self) {
+        playerCircle.setFillColor(sf::Color::Green);
+    }
+    else {
+        if (team == 2) {
+            playerCircle.setFillColor(sf::Color::Red);
+        }
+        else {
+            playerCircle.setFillColor(sf::Color::Cyan);
+        }
+    }
+}
+
 int main() {
-    std::string mapName; std::cin >> mapName;
-
     Cheat cheat(L"cs2.exe");
-    GameMap gameMap(mapName);
+    GameMap gameMap("no_map");
 
-    sf::RenderWindow window(sf::VideoMode(512, 512), "CS2 Radar Hack");
+    sf::RenderWindow window(sf::VideoMode(512, 512), "OBS Recording Software");
 
     std::vector<sf::CircleShape> playerCircles(64);
     for (int i = 0; i < 64; ++i) {
@@ -43,10 +55,11 @@ int main() {
         }
 
         std::vector<common::Player> playerVec = cheat.getPlayers();
+        std::string currentMap = cheat.getMapName();
 
-        window.clear();
-
-        window.draw(gameMap);
+        if (currentMap != gameMap.getMapName()) {
+            gameMap.setMap(currentMap);
+        }
 
         int32_t playerCount = playerVec.size();
         if (playerCount != initialPlayerCount) {
@@ -58,22 +71,17 @@ int main() {
             common::Vec2 radarPos = gameMap.getWorldPosToRadarPos(playerVec[playerIdx].pos);
 
             playerCircles[playerIdx].setPosition(radarPos.x / 2, radarPos.y / 2);
-
-            if (playerVec[playerIdx].self) {
-                playerCircles[playerIdx].setFillColor(sf::Color::Green);
-            }
-            else {
-                if (playerVec[playerIdx].team == 2) {
-                    playerCircles[playerIdx].setFillColor(sf::Color::Red);
-                }
-                else {
-                    playerCircles[playerIdx].setFillColor(sf::Color::Cyan);
-                }
-            }
+            setPlayerCircleColor(playerCircles[playerIdx], playerVec[playerIdx].team, playerVec[playerIdx].self);
         }
 
-        for (size_t i = 0; i < playerVec.size(); ++i) {
-            window.draw(playerCircles[i]);
+        window.clear();
+
+        window.draw(gameMap);
+
+        if (currentMap != "no_map") {
+            for (size_t i = 0; i < playerVec.size(); ++i) {
+                window.draw(playerCircles[i]);
+            }
         }
 
         window.display();

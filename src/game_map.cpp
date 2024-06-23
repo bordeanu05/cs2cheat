@@ -5,18 +5,31 @@ GameMap::GameMap() : mMapName("no_map_selected"), mMapCoords({ 0.f, 0.f, 0.f }) 
 GameMap::GameMap(std::string mapName) {
     mMapName = mapName;
     mMapCoords = mMapCoordsDict[mapName];
-    std::cout << "mMapCoords.x: " << mMapCoords.x << std::endl;
-    std::cout << "mMapCoords.y: " << mMapCoords.y << std::endl;
-    std::cout << "mMapCoords.z: " << mMapCoords.z << std::endl;
+    loadRadarImg();
+}
+
+void GameMap::setMap(std::string mapName) {
+    mMapName = mapName;
+    mMapCoords = mMapCoordsDict[mapName];
     loadRadarImg();
 }
 
 void GameMap::loadRadarImg() {
-    std::string radarImgDir = "radar_imgs/" + mMapName + ".png";
+    bool mapExists = mMapCoordsDict.find(mMapName) != mMapCoordsDict.end();
+    if (!mapExists) {
+        mMapName = "no_map";
+        mMapCoords = mMapCoordsDict["no_map"];
 
-    if (!mMapTexture.loadFromFile(radarImgDir)) {
-        std::cerr << "Failed to load radar image!" << std::endl;
-        exit(EXIT_FAILURE);
+        if (!mMapTexture.loadFromFile("radar_imgs/no_map.png")) {
+            std::cerr << "Failed to load radar image for map: " << mMapName << std::endl;
+        }
+    }
+    else {
+        std::string radarImgDir = "radar_imgs/" + mMapName + ".png";
+
+        if (!mMapTexture.loadFromFile(radarImgDir)) {
+            std::cerr << "Failed to load radar image for map: " << mMapName << std::endl;
+        }
     }
 
     this->setTexture(mMapTexture);

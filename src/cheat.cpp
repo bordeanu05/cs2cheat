@@ -40,7 +40,7 @@ std::vector<common::Player> Cheat::getPlayers() {
         float yPos = mMem.memRead<float>(currentPawn + offsets::y_offset);
         float zPos = mMem.memRead<float>(currentPawn + offsets::z_offset);
 
-        uintptr_t localPlayerPawn = mMem.memRead<uintptr_t>(mClient + 0x181A9C8);
+        uintptr_t localPlayerPawn = mMem.memRead<uintptr_t>(mClient + offsets::localPlayerPawnOffset);
 
         if (currentPawn == localPlayerPawn) {
             playerVec.push_back({ entHealth, entTeam, true, {xPos, yPos, zPos} });
@@ -51,4 +51,18 @@ std::vector<common::Player> Cheat::getPlayers() {
     }
 
     return playerVec;
+}
+
+std::string Cheat::getMapName() {
+    uintptr_t globalVars = mMem.memRead<uintptr_t>(mClient + offsets::dwGlobalVars);
+    uintptr_t mapAddress = mMem.memRead<uintptr_t>(globalVars + 0x1B8);
+
+    if (!mapAddress) {
+        return "no_map";
+    }
+
+    std::string mapName;
+    mMem.memReadString(mapAddress, mapName);
+
+    return mapName;
 }

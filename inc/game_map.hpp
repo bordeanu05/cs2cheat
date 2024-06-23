@@ -27,7 +27,8 @@ private:
         { "de_mirage",   { -3230.f, 1713.f, 5.f } },
         { "de_nuke",     { -3453.f, 2887.f, 7.f } },
         { "de_overpass", { -4831.f, 1781.f, 5.2f } },
-        { "de_vertigo",  { -3168.f, 1762.f, 4.f } }
+        { "de_vertigo",  { -3168.f, 1762.f, 4.f } },
+        { "no_map",      { 0.f, 0.f, 1.f } }
     };
 
     void loadRadarImg();
@@ -35,6 +36,8 @@ private:
 public:
     GameMap();
     GameMap(std::string);
+
+    void setMap(std::string);
 
     std::string getMapName() {
         return mMapName;

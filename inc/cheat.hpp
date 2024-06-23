@@ -14,6 +14,7 @@ private:
     Memory mMem;
 
     uintptr_t mClient;
+
     uintptr_t mEntityList;
     uintptr_t mListEntry;
 
@@ -21,7 +22,7 @@ public:
     Cheat(const wchar_t*);
 
     std::vector<common::Player> getPlayers();
-
+    std::string getMapName();
 };
 
 #endif

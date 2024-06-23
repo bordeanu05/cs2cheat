@@ -18,6 +18,12 @@ public:
 
     uintptr_t getModuleAddress(const wchar_t* moduleName);
 
+    void memReadString(uintptr_t address, std::string& out) {
+        char buffer[64];
+        ReadProcessMemory(mProcessHandle, (LPCVOID)address, buffer, sizeof(buffer), NULL);
+        out = buffer;
+    }
+
     template <typename T>
     T memRead(uintptr_t address) {
         T value;
