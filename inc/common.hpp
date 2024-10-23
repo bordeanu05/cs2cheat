@@ -11,11 +11,11 @@ struct Vec3 {
 };
 
 struct Player {
-    int health;
-    int team;
+    int32_t health;
+    int32_t team;
     bool self;
 
     common::Vec3 pos;
 };
 
-}
+} // namespace common

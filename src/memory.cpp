@@ -2,27 +2,37 @@
 #include <TlHelp32.h>
 
 Memory::Memory(const wchar_t* processName) {
-    HANDLE snapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    bool isProcessOpened = false;
 
-    PROCESSENTRY32W processEntry = {};
-    processEntry.dwSize = sizeof(PROCESSENTRY32W);
+    // Search for cs2.exe and retry if not found
+    do {
+        HANDLE snapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
-    if (Process32FirstW(snapshotHandle, &processEntry)) {
-        do {
-            if (_wcsicmp(processEntry.szExeFile, processName) == 0) {
-                mProcessId = processEntry.th32ProcessID;
-                mProcessHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, mProcessId);
-                break;
-            }
-        } while (Process32NextW(snapshotHandle, &processEntry));
-    }
+        PROCESSENTRY32W processEntry = {};
+        processEntry.dwSize = sizeof(PROCESSENTRY32W);
 
-    CloseHandle(snapshotHandle);
+        if (Process32FirstW(snapshotHandle, &processEntry)) {
+            do {
+                if (_wcsicmp(processEntry.szExeFile, processName) == 0) {
+                    mProcessId = processEntry.th32ProcessID;
+                    mProcessHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, mProcessId);
+                    break;
+                }
+            } while (Process32NextW(snapshotHandle, &processEntry));
+        }
 
-    if (mProcessHandle == NULL) {
-        std::cerr << "Open CS2 first!";
-        exit(EXIT_FAILURE);
-    }
+        CloseHandle(snapshotHandle);
+
+        if (mProcessHandle != NULL) {
+            isProcessOpened = true;
+            std::cout << "CS2 game process found!" << std::endl;
+        }
+        else {
+            std::cerr << "CS2 is not opened, waiting..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+        }
+    } while (!isProcessOpened);
+
 }
 
 Memory::~Memory() {
@@ -31,11 +41,11 @@ Memory::~Memory() {
     }
 }
 
-DWORD Memory::getProcessId() {
+DWORD Memory::getProcessId() const {
     return mProcessId;
 }
 
-HANDLE Memory::getProcessHandle() {
+HANDLE Memory::getProcessHandle() const {
     return mProcessHandle;
 }
 
@@ -57,4 +67,10 @@ uintptr_t Memory::getModuleAddress(const wchar_t* moduleName) {
     CloseHandle(snapshotHandle);
 
     return static_cast<uintptr_t>(0);
+}
+
+void Memory::memReadString(uintptr_t address, std::string& out) {
+    char buffer[64];
+    ReadProcessMemory(mProcessHandle, (LPCVOID)address, buffer, sizeof(buffer), NULL);
+    out = buffer;
 }
