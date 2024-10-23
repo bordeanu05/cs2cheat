@@ -3,7 +3,7 @@
 GameMap::GameMap() : mMapName("<empty>"), mMapCoords({ 0.f, 0.f, 0.f }) {}
 
 GameMap::GameMap(std::string mapName) {
-    this->setScale(0.5f, 0.5f);
+    this->setScale(0.25f, 0.25f);
 
     mMapName = mapName;
     mMapCoords = mMapCoordsDict[mapName];

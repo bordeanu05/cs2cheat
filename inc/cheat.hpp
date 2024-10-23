@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <array>
 #include <cstdint>
 
 #include "common.hpp"
@@ -11,7 +11,7 @@ class Cheat {
 public:
     Cheat(const wchar_t*);
 
-    std::vector<common::Player> getPlayers();
+    void UpdatePlayersInfo(std::array<common::Player, 64>&, int32_t&);
     std::string getMapName();
 
 private:
@@ -22,5 +22,4 @@ private:
     uintptr_t mEntityList;
     uintptr_t mListEntry;
     uintptr_t mLocalPlayerPawn;
-    uintptr_t mGlobalVars;
 };

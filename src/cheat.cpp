@@ -5,18 +5,13 @@ Cheat::Cheat(const wchar_t* processName) : mMem(processName) {
 
     mEntityList = mMem.memRead<uintptr_t>(mClient + offsets::dwEntityList);
     mListEntry = mMem.memRead<uintptr_t>(mEntityList + 0x10);
-    mGlobalVars = mMem.memRead<uintptr_t>(mClient + offsets::dwGlobalVars);
 }
 
-std::vector<common::Player> Cheat::getPlayers() {
-    std::vector<common::Player> playerVec;
+void Cheat::UpdatePlayersInfo(std::array<common::Player, 64>& playerDataArr, int32_t& playerCount) {
     mLocalPlayerPawn = mMem.memRead<uintptr_t>(mClient + offsets::dwLocalPlayerPawn);
+    playerCount = 0;
 
     for (size_t i = 0; i < 64; ++i) {
-        if (!mListEntry) {
-            continue; // TODO: check if can delete this check
-        }
-
         uintptr_t currentController = mMem.memRead<uintptr_t>(mListEntry + i * 0x78);
         if (!currentController) {
             continue;
@@ -41,15 +36,13 @@ std::vector<common::Player> Cheat::getPlayers() {
         // ---------------------------------------------------------------
 
         if (!isDead) {
-            playerVec.push_back({ entHealth, entTeam, isSelf, entPos });
+            playerDataArr[playerCount++] = { entHealth, entTeam, isSelf, entPos };
         }
     }
-
-    return playerVec;
 }
 
 std::string Cheat::getMapName() {
-    mGlobalVars = mMem.memRead<uintptr_t>(mClient + offsets::dwGlobalVars);
+    uintptr_t mGlobalVars = mMem.memRead<uintptr_t>(mClient + offsets::dwGlobalVars);
     uintptr_t mapAddress = mMem.memRead<uintptr_t>(mGlobalVars + offsets::m_current_mapname);
 
     if (!mapAddress) {
