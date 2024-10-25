@@ -7,9 +7,7 @@ This project is an external radar cheat created for CS2, utilizing C++ and SFML.
 
 This cheat is designed for use on a secondary monitor or alongside the game in windowed mode, with the cheat's window positioned to the side.
 
-<video width="1084" height="505" controls>
-  <source src="demo/mirage_demo.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/6e02a544-42a1-43f3-a218-20a1759f3736
 
 # Building the project
 
